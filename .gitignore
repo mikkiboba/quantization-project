@@ -7,6 +7,7 @@ venv/
 
 data/*.json
 results/*.json
+papers/
 gguf_models/
 mlx_models/
 llama.cpp/
