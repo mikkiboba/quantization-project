@@ -1,0 +1,12 @@
+venv/
+*.pyc
+
+
+.DS_Store
+
+
+data/*.json
+results/*.json
+gguf_models/
+mlx_models/
+llama.cpp/
