@@ -1,8 +1,23 @@
-transformers
-torch
-datasets
-rouge-score
+# Core PyTorch & Utilities
+torch>=2.2.0
+torchvision
+torchaudio
 pandas
+numpy
 matplotlib
-requests
-mlx-lm
+psutil
+tqdm
+
+# Hugging Face & Evaluation Pipeline
+transformers>=4.40.0
+datasets>=2.18.0
+evaluate>=0.4.1
+rouge_score
+bert_score
+accelerate
+optimum
+
+# Quantization & Metal Engines (Apple Silicon)
+mlx>=0.12.0
+mlx-lm>=0.12.0
+smoothquant
