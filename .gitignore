@@ -11,3 +11,5 @@ papers/
 gguf_models/
 mlx_models/
 llama.cpp/
+
+nlp_env/
