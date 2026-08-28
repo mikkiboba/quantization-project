@@ -12,8 +12,8 @@ import src.evaluator as evaluator
 
 from src.db_loader import DatabaseError
 
-
-BYTES_TO_MB = 1048576 # 1024 * 1024
+# 1024 * 1024
+BYTES_TO_MB = 1024 * 1024 
 
 
 class ModelPrecision(ABC):
@@ -29,12 +29,9 @@ class ModelPrecision(ABC):
 
     # * attributes
     model_name: str
-    _process:   psutil.Process
 
-    _start_time: int
-    _end_time:   int
-
-    peak_mem: float
+    _process:       psutil.Process
+    _start_time:    float
 
     predictions: list[str]
 
@@ -50,12 +47,12 @@ class ModelPrecision(ABC):
 
     def __init__(self, model_name: str):
         self.model_name = model_name
-        self._process = psutil.Process()
+        self._process   = psutil.Process()
 
         self.predictions = []
 
         self.tot_tokens         = 0
-        self.total_input_tokens = 0
+        self.tot_inp_tokens     = 0
 
         self.max_inp_tokens = 1024
         self.max_tokens     = 128
@@ -85,7 +82,6 @@ class ModelPrecision(ABC):
 
         documents:  list[str]
         references: list[str]
-
         try:
             documents   = dataset["document"]
             references  = dataset["summary"]
@@ -174,7 +170,7 @@ class ModelPrecision(ABC):
         if len(self.predictions) != len(references):
             raise RuntimeError(
                 f"Predictions/references mismatch: {len(self.predictions)} predictions, "
-                "{len(references)} references."
+                f"{len(references)} references."
             )
 
         metric_evaluator: evaluator.MetricEvaluator = evaluator.MetricEvaluator()
