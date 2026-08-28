@@ -143,7 +143,7 @@ def run_models(
     for model in models:
         print()
         print("-" * 70)
-        print(f"MODEL: {model._model_name}")
+        print(f"MODEL: {model.model_name}")
         print("-" * 70)
 
         model.max_tokens = config.max_new_tokens
