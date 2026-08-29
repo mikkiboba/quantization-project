@@ -1,6 +1,16 @@
 from __future__ import annotations
 
-from datasets import Dataset, load_dataset
+from datasets   import Dataset, load_dataset
+from pathlib    import Path
+
+import pandas as pd
+
+
+REQUIRED_COLUMNS: set[str] = {
+    "sample_id",
+    "document",
+    "summary"
+}
 
 
 class DatabaseError(Exception):
@@ -9,6 +19,46 @@ class DatabaseError(Exception):
         self.message = message
         super().__init__(self.message)
 
+
+def load_evaluation_manifest(path: str | Path) -> Dataset:
+    """
+    Load a previously created evaluation manifest (see `src/eval_manifest.py`).
+    """
+
+    path: Path = Path(path)
+    if not path.exists():
+        raise DatabaseError(f"Evaluation manifest not found: {path}")
+
+    try:
+        dataframe: pd.DataFrame = pd.read_csv(path)
+    except Exception as e:
+        raise DatabaseError(f"Could not read evaluation manifest: {path}") from e
+
+    missing_cols: set[str] = REQUIRED_COLUMNS - set(dataframe.columns)
+    if missing_cols:
+        raise DatabaseError(f"Evaluation manifest is missing columns: {sorted(missing_cols)}")
+
+    if dataframe.empty:
+        raise DatabaseError(f"Evaluation manifest is empty: {path}")
+
+    if dataframe["sample_id"].duplicated().any():
+        raise DatabaseError(f"Duplicate sample IDs found in: {path}")
+
+    if dataframe["document"].isna().any():
+        raise DatabaseError(f"Missing documents in manifest: {path}")
+
+    if dataframe["summary"].isna().any():
+        raise DatabaseError(f"Missing references in manifest: {path}")
+
+    dataframe = dataframe[
+        [
+            "sample_id",
+            "document",
+            "summary"
+        ]
+    ]
+
+    return Dataset.from_pandas(dataframe, preserve_index = False)
 
 def load_dataset_subset(
         database_name: str,

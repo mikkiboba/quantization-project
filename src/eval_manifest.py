@@ -6,8 +6,9 @@ from datasets   import load_dataset
 import pandas as pd
 
 
-SEED: int = 42
-SAMPLE_SIZE: int = 100
+TEXT_LEN: int       = 70
+SEED: int           = 42
+SAMPLE_SIZE: int    = 100
 
 OUTPUT_DIR = Path("data")
 
@@ -26,9 +27,9 @@ def create_manifest(
     """
 
     print()
-    print("="*70)
+    print("=" * TEXT_LEN)
     print(f"Creating evaluation manifest: {output_name}")
-    print("="*70)
+    print("=" * TEXT_LEN)
 
     print(f"Dataset      : {dataset_name}")
     print(f"Config       : {config}")
@@ -108,9 +109,9 @@ def main() -> None:
     )
 
     print()
-    print("=" * 70)
+    print("=" * TEXT_LEN)
     print("All evaluation manifests created successfully.")
-    print("=" * 70)
+    print("=" * TEXT_LEN)
 
 
 if __name__ == "__main__":

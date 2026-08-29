@@ -46,16 +46,16 @@ class ModelPrecision(ABC):
 
 
     def __init__(self, model_name: str):
-        self.model_name = model_name
-        self._process   = psutil.Process()
+        self.model_name         = model_name
+        self._process           = psutil.Process()
 
-        self.predictions = []
+        self.predictions        = []
 
         self.tot_tokens         = 0
         self.tot_inp_tokens     = 0
 
-        self.max_inp_tokens = 1024
-        self.max_tokens     = 128
+        self.max_inp_tokens     = 1024
+        self.max_tokens         = 128
 
         self.elapsed_seconds    = 0.0
         self.memory_mb          = 0.0

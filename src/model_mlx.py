@@ -13,6 +13,8 @@ from mlx_lm.tokenizer_utils import TokenizerWrapper
 from src.model_method import ModelPrecision
 
 
+MAX_TOKENS_LIMIT: int = 8
+
 MODEL_ID: str = "mlx-community/Qwen2.5-1.5B-Instruct-4bit"
 
 
@@ -56,7 +58,7 @@ class ModelMLX(ModelPrecision):
             model       = model,
             tokenizer   = tokenizer,
             prompt      = first_prompt,
-            max_tokens  = min(self.max_tokens, 8),
+            max_tokens  = min(self.max_tokens, MAX_TOKENS_LIMIT),
             sampler     = sampler,
             verbose     = False
         )
