@@ -8,7 +8,7 @@ import pandas as pd
 
 TEXT_LEN: int       = 70
 SEED: int           = 42
-SAMPLE_SIZE: int    = 100
+SAMPLE_SIZE: int    = 500
 
 OUTPUT_DIR = Path("data")
 
@@ -98,14 +98,14 @@ def main() -> None:
         "abisee/cnn_dailymail",
         config="3.0.0",
         split="test",
-        output_name="cnn_eval_seed42_100.csv",
+        output_name="cnn_eval_seed42_500.csv",
     )
 
     create_manifest(
         "EdinburghNLP/xsum",
         config=None,
         split="test",
-        output_name="xsum_eval_seed42_100.csv",
+        output_name="xsum_eval_seed42_500.csv",
     )
 
     print()

@@ -1,0 +1,2 @@
+Model,Dataset,Samples,ROUGE-1,ROUGE-2,ROUGE-L,BERTScore-F1,Latency (s),Speed (token/s),Generated tokens,Average output tokens,Average input tokens,RSS (MB),Seed,Max input tokens,Max new tokens,Evaluation manifest
+GPTQ 4-bit,cnn,1,10.989,2.247,6.593,84.537,123.267,0.576,71,71.0,1024.0,1152.531,42,1024,128,data/cnn_eval_seed42_100.csv

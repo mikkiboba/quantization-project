@@ -23,6 +23,14 @@ class ModelMLX(ModelPrecision):
         super().__init__("MLX 4-bit")
 
 
+    def capture_inference_memory(self):
+        """
+        Capture MLX memory and process RSS after inference.
+        """
+
+        self.inference_rss_mb = self.get_processed_memory()
+        self.peak_device_memory_mb = mx.get_peak_memory() / (1024 * 1024)
+
     def run(
             self,
             dataset: Dataset,
@@ -65,7 +73,7 @@ class ModelMLX(ModelPrecision):
 
         mx.eval(model)
 
-        print("\tFirst inference completed.")            
+        print("\tFirst inference completed.")     
 
         self.start_timer()
 
@@ -76,13 +84,15 @@ class ModelMLX(ModelPrecision):
                 dataset_name = dataset_name
             )
 
-            inp_tokens = tokenizer.encode(prompt)
-            self.tot_inp_tokens += len(inp_tokens)
+            raw_inp_tokens: list[int]       = tokenizer.encode(prompt)
+            actual_inp_tokens: list[int]    = raw_inp_tokens[:self.max_inp_tokens]
+
+            self.record_input_tokens(raw_length = len(raw_inp_tokens), actual_length = len(actual_inp_tokens))
 
             output: str = mlx_generate(
                 model       = model,
                 tokenizer   = tokenizer,
-                prompt      = prompt,
+                prompt      = actual_inp_tokens,
                 max_tokens  = self.max_tokens,
                 sampler     = sampler,
                 verbose     = False
@@ -99,6 +109,8 @@ class ModelMLX(ModelPrecision):
         mx.eval(model)
 
         self.stop_timer()
+
+        self.capture_inference_memory()
 
         results: dict[str, Any] = self.compute_metrics(dataset, dataset_name, references)
 

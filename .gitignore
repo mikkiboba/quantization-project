@@ -13,3 +13,5 @@ mlx_models/
 llama.cpp/
 
 nlp_env/
+old_src/
+other_results/

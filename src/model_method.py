@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import re
 import time
 import psutil
 
 from abc        import ABC, abstractmethod
-from pathlib    import Path
 from typing     import Any
 from datasets   import Dataset
 
@@ -35,14 +35,18 @@ class ModelPrecision(ABC):
 
     predictions: list[str]
 
-    tot_tokens:     int
-    tot_inp_tokens: int 
+    tot_tokens:         int
+    tot_inp_tokens:     int 
+    tot_raw_inp_tokens: int
 
     max_tokens:     int
     max_inp_tokens: int
 
-    elapsed_seconds:    float
-    memory_mb:          float
+    truncated_examples: int
+
+    elapsed_seconds:        float
+    peak_device_memory_mb:  float
+    inference_rss_mb:       float
 
 
     def __init__(self, model_name: str):
@@ -53,12 +57,16 @@ class ModelPrecision(ABC):
 
         self.tot_tokens         = 0
         self.tot_inp_tokens     = 0
+        self.tot_raw_inp_tokens = 0
 
         self.max_inp_tokens     = 1024
         self.max_tokens         = 128
 
-        self.elapsed_seconds    = 0.0
-        self.memory_mb          = 0.0
+        self.truncated_examples = 0
+
+        self.elapsed_seconds        = 0.0
+        self.peak_device_memory_mb  = 0.0
+        self.inference_rss_mb       = 0.0        
 
 
     def reset(self):
@@ -69,8 +77,11 @@ class ModelPrecision(ABC):
         self.predictions        = []
         self.tot_tokens         = 0
         self.tot_inp_tokens     = 0
+        self.tot_raw_inp_tokens = 0
+        self.truncated_examples = 0
         self.elapsed_seconds    = 0.0
-        self.memory_mb          = 0.0
+        self.peak_device_memory_mb = 0.0
+        self.inference_rss_mb   = 0.0
 
 
     def get_doc_ref(self, dataset: Dataset) -> tuple[list[str], list[str]]:
@@ -89,6 +100,14 @@ class ModelPrecision(ABC):
             raise DatabaseError("Dataset must contain 'document' and 'summary' columns") from e
 
         return documents, references
+
+
+    def record_input_tokens(self, raw_length: int, actual_length: int):
+        self.tot_raw_inp_tokens += raw_length
+        self.tot_inp_tokens     += actual_length
+
+        if raw_length > self.max_inp_tokens:
+            self.truncated_examples += 1
 
 
     # ! rss and not 'vram' or 'peak memory'
@@ -136,6 +155,21 @@ class ModelPrecision(ABC):
         )
 
 
+    @staticmethod
+    def count_sentences(text: str) -> int:
+        """
+        Estimate the number of sentences in a summary.
+        """
+
+        text = text.strip()
+        if not text:
+            return 0
+
+        sentences = re.split(r"(?<=[.!?])\s+", text)
+
+        return len([sentence for sentence in sentences if sentence.strip()])
+
+
     def start_timer(self):
         """
         Start inference timer.
@@ -161,6 +195,13 @@ class ModelPrecision(ABC):
             print(f"\t\tProcessed [{idx + 1}/{dataset_len}] samples.")
 
 
+    def capture_inference_memory(self):
+        """
+        Capture process RSS after inference and before quality evaluation.
+        """
+        self.inference_rss_mb = self.get_processed_memory()
+
+
     def compute_metrics(self, dataset: Dataset, dataset_name: str, references: list[str]) -> dict[str, Any]:
         """
         Compute quality and efficiency metrics. 
@@ -180,13 +221,33 @@ class ModelPrecision(ABC):
             references  = references
         )
 
+        n_examples: int = len(self.predictions)
         avg_out_tokens: float = (
-            self.tot_tokens / len(self.predictions) if self.predictions
+            self.tot_tokens / n_examples if n_examples > 0
             else 0.0
         )
 
         avg_inp_tokens: float = (
-            self.tot_inp_tokens / len(self.predictions) if self.predictions
+            self.tot_inp_tokens / n_examples if n_examples > 0
+            else 0.0
+        )
+
+        avg_raw_inp_tokens: float = (
+            self.tot_raw_inp_tokens / n_examples if n_examples > 0
+            else 0.0
+        )
+
+        truncation_rate: float = (
+            self.truncated_examples / n_examples if n_examples > 0
+            else 0.0
+        )
+
+        empty_outputs: int = sum(1 for pred in self.predictions if not pred.strip())
+
+        sentence_counts: list[int] = [self.count_sentences(pred) for pred in self.predictions]
+
+        avg_sentences: float = (
+            sum(sentence_counts) / n_examples if n_examples > 0
             else 0.0
         )
 
@@ -207,7 +268,13 @@ class ModelPrecision(ABC):
             "Generated tokens":         self.tot_tokens,
             "Average output tokens":    round(avg_out_tokens, evaluator.ROUNDING),
             "Average input tokens":     round(avg_inp_tokens, evaluator.ROUNDING),
-            "RSS (MB)":                 round(self.get_processed_memory(), evaluator.ROUNDING)
+            "Average raw input tokens": round(avg_raw_inp_tokens, evaluator.ROUNDING),
+            "Truncated examples":       self.truncated_examples,
+            "Truncation rate":          round(truncation_rate, evaluator.ROUNDING),
+            "Average sentences":        round(avg_sentences, evaluator.ROUNDING),
+            "Empty outputs":            empty_outputs,
+            "Inference RSS (MiB)":      round(self.inference_rss_mb, evaluator.ROUNDING),
+            "Peak backend memory (MiB)": round(self.peak_device_memory_mb, evaluator.ROUNDING)
         }
 
 

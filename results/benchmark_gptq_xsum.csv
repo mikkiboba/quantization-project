@@ -1,0 +1,2 @@
+Model,Dataset,Samples,ROUGE-1,ROUGE-2,ROUGE-L,BERTScore-F1,Latency (s),Speed (token/s),Generated tokens,Average output tokens,Average input tokens,RSS (MB),Seed,Max input tokens,Max new tokens,Evaluation manifest
+GPTQ 4-bit,xsum,1,11.765,4.082,11.765,89.132,54.455,0.569,31,31.0,364.0,1079.703,42,1024,128,data/xsum_eval_seed42_100.csv
