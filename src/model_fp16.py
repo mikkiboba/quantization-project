@@ -25,6 +25,8 @@ class ModelFP16(ModelPrecision):
     def capture_inference_memory(self, observed_peak_mb: float = 0.0):
         """
         Capture inference time memory.
+
+        observed_peak_mb (float): observed peak memory (in Mbis).
         """
         self.inference_rss_mb = self.get_processed_memory()
 
@@ -120,9 +122,9 @@ class ModelFP16(ModelPrecision):
 
             if device == "mps":
                 torch.mps.synchronize()
-                observed_peak_mps_mb = max(observed_peak_mps_mb, torch.mps.driver_allocated_memory() / (1024 * 1024))
-                current_mps_memory_mb = torch.mps.driver_allocated_memory() / (1024 * 1024)
-                mps_peak_memory_mb = max(mps_peak_memory_mb, current_mps_memory_mb)
+                observed_peak_mps_mb    = max(observed_peak_mps_mb, torch.mps.driver_allocated_memory() / (1024 * 1024))
+                current_mps_memory_mb   = torch.mps.driver_allocated_memory() / (1024 * 1024)
+                mps_peak_memory_mb      = max(mps_peak_memory_mb, current_mps_memory_mb)
 
             generated_tokens = outputs[0, inputs.input_ids.shape[1]:]
 

@@ -88,6 +88,12 @@ class ModelPrecision(ABC):
         """
         Receive the tuple containing documents and reference summaries from the specified dataset.
         
+        Parameters:
+            dataset (Dataset): dataset to work on (cnn/dailymail or xsum).
+
+        Returns:
+            tuple[list[str], list[str]]: lists of documents and references.
+
         Note: The dataset MUST have columns named "document" and "summary".
         """
 
@@ -103,6 +109,13 @@ class ModelPrecision(ABC):
 
 
     def record_input_tokens(self, raw_length: int, actual_length: int):
+        """
+        Update the total of input tokens, total of raw input tokens and truncated examples.
+
+        Parameters:
+            raw_length (int):       raw length of the tokens.
+            actual_length (int):    actual length of the tokens.
+        """
         self.tot_raw_inp_tokens += raw_length
         self.tot_inp_tokens     += actual_length
 
@@ -281,7 +294,11 @@ class ModelPrecision(ABC):
     @abstractmethod
     def run(self, dataset: Dataset, dataset_name: str) -> dict[str, Any]:
         """
-        Run the model and return benchmark metrics
+        Run the model and return benchmark metrics.
+
+        Parameters:
+            dataset (Dataset):  dataset to run the model on (cnn/dailymail or xsum).
+            dataset_name (str): name of the dataset.
         """
         raise NotImplementedError
 

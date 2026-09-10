@@ -17,8 +17,9 @@ from src.environment    import get_environment_info
 import src.model_fp16 as fp16
 import src.model_gguf as gguf
 import src.model_mlx  as mlx
-import src.model_gptq as gptq
 
+# ! takes too much computation time
+#import src.model_gptq as gptq
 
 # ! takes too much computation time
 # import src.bnb as bnb
@@ -31,6 +32,9 @@ warnings.filterwarnings("ignore", category=UserWarning)
 transformers.logging.set_verbosity_error()
 
 
+# * these are hard-coded things
+# * last update: I've changed the seed from `67` to `42` to see if there were any substantial 
+# *              changes but there weren't
 @dataclass(frozen=True)
 class ExperimentalConfig:
     """
@@ -50,6 +54,15 @@ class ExperimentalConfig:
 
 
 def parse_args() -> argparse.Namespace:
+    """
+    Parse the arguments given by the command line to run the code.
+    
+    Argument to pass: `--model`, `--limit`, `--dataset`
+
+    Returns:
+        argparse.Namespace: Parsed arguments.
+    """
+
     parser = argparse.ArgumentParser(
         description = "Run one quantization configuration."
     )
@@ -60,7 +73,7 @@ def parse_args() -> argparse.Namespace:
             "fp16",
             "mlx",
             "gguf",
-            "gptq",
+            #"gptq",
         ],
         help = "Model configuration to benchmark."
     )
@@ -88,6 +101,12 @@ def parse_args() -> argparse.Namespace:
 def load_datasets(config: ExperimentalConfig) -> tuple[Dataset, Dataset]:
     """
     Load the manifest.
+
+    Parameters:
+        config (ExperimentalConfig): configuration for the experiment.
+
+    Returns:
+        tuple[Dataset, Dataset]: manifests for cnn/dailymail and xsum.
     """
 
     cnn: Dataset    = load_evaluation_manifest(config.cnn_manifest)
@@ -99,6 +118,15 @@ def load_datasets(config: ExperimentalConfig) -> tuple[Dataset, Dataset]:
 def load_model(model_name: str) -> ModelPrecision:
     """
     Create one model configuration.
+
+    Parameters:
+        model_name (str): name of the model to load.
+
+    Returns:
+        ModelPrecision: the specified model class.
+
+    Raises:
+        ValueError: if the specified model is not known.
     """
 
     if model_name == "fp16":
@@ -107,8 +135,8 @@ def load_model(model_name: str) -> ModelPrecision:
         return mlx.ModelMLX()
     if model_name == "gguf":
         return gguf.ModelGGUF()
-    if model_name == "gptq":
-        return gptq.ModelGPTQ()
+    #if model_name == "gptq":
+    #    return gptq.ModelGPTQ()
 
     raise ValueError(f"Unknown model: {model_name}")
 
@@ -122,6 +150,17 @@ def save_examples(
 ):
     """
     Save documents and model predictions.
+
+    Parameters:
+        dataset (datasets.Dataset):     dataset of reference (cnn/dailymail or xsum).
+        dataset_name (str):             name of the dataset.
+        model (ModelPrecision):         class of the model.
+        model_name (str):               name of the model.
+        config (ExperimentalConfig):    configuration for the experiment.
+
+    Raises:
+        RuntimeError:   if there are prediction count mismatch between the predictions of the model 
+                        and the samples of the dataset.
     """
 
     if len(model.predictions) != len(dataset):
@@ -156,7 +195,14 @@ def run_model(
         environment: dict[str, Any]
 ):
     """
-    Run a model on the same dataset.
+    Run a model on the specified dataset.
+
+    Parameters:
+        dataset (Dataset): dataset to work on (cnn/dailymail or xsum).
+        dataset_name (str): name of the dataset.
+        model_name (str): name of the model to use.
+        config (ExperimentalConfig): configuration of the experiment.
+        environment (dict[str, Any]): information about the experimental environment.
     """
 
     print()

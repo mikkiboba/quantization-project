@@ -1,4 +1,3 @@
-# Core PyTorch & Utilities
 torch>=2.2.0
 torchvision
 torchaudio
@@ -8,7 +7,6 @@ matplotlib
 psutil
 tqdm
 
-# Hugging Face & Evaluation Pipeline
 transformers>=4.40.0
 datasets>=2.18.0
 evaluate>=0.4.1
@@ -17,7 +15,6 @@ bert_score
 accelerate
 optimum
 
-# Quantization & Metal Engines (Apple Silicon)
 mlx>=0.12.0
 mlx-lm>=0.12.0
 smoothquant
