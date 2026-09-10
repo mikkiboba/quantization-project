@@ -96,16 +96,16 @@ def main() -> None:
 
     create_manifest(
         "abisee/cnn_dailymail",
-        config="3.0.0",
-        split="test",
-        output_name="cnn_eval_seed42_500.csv",
+        config      = "3.0.0",
+        split       = "test",
+        output_name = "cnn_eval_seed42_500.csv",
     )
 
     create_manifest(
         "EdinburghNLP/xsum",
-        config=None,
-        split="test",
-        output_name="xsum_eval_seed42_500.csv",
+        config      = None,
+        split       = "test",
+        output_name = "xsum_eval_seed42_500.csv",
     )
 
     print()
